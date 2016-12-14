@@ -123,8 +123,8 @@ class  DMN_Model(object):
         with tf.device('/cpu:0'):
             with tf.variable_scope('Embedding_Layer'):
                 embeddings = tf.Variable(self.initial_embeddings,name = 'Embeddings')
-                self.input_embeddings = tf.nn.embedding_lookup(embeddings, self.inputs_placeholder)
-                self.question_embeddings = tf.nn.embedding_lookup(embeddings, self.questions_placeholder)
+                self.input_embeddings = tf.nn.embedding_lookup(embeddings, self.inputs_placeholder) #(N,S,D)
+                self.question_embeddings = tf.nn.embedding_lookup(embeddings, self.questions_placeholder) #(N,S,D)
 
     def add_input_question_module(self):
         """ Generate the Input module describe in the paper above.

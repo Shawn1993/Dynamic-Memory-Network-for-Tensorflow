@@ -266,19 +266,8 @@ def process_babi(tasks, word_table):
     return inputs, fact_masks, questions, answers
 
 def get_babi(data_dir, task_id, task_type, batch_size, word_table):
-    dataset = None
-    cache_path = '{}/task{}.{}.cache'.format(data_dir, task_id, task_type)
-    if os.path.exists(cache_path):
-        with open(cache_path, 'rb') as cache:
-            dataset = pickle.load(cache)
-            print('Loaded babi cache')
-    else :
-        dataset = DataSet(batch_size, *process_babi(load_babi(data_dir,task_id,task_type), word_table))
-        with open(cache_path, 'wb') as cache:
-            pickle.dump(dataset, cache)
-        print('Saved babi cache')
-
-    return dataset
+    data = process_babi(load_babi(data_dir,task_id,task_type), word_table)
+    return DataSet(batch_size, *data)
 
 def get_wordtable(dim, name=None):
     if not name:
