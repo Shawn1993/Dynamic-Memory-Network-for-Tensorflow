@@ -2,7 +2,6 @@ import numpy as np
 import os
 import pickle
 
-
 class Batch(object):
     """data structure for batch"""
     def __init__(self, contexts, fact_masks, questions, answers):
@@ -213,6 +212,7 @@ def load_babi(data_dir, task_id, type='train'):
 """ a neat code from https://github.com/therne/dmn-tensorflow 
 I modify something
 """
+from tqdm import tqdm
 def process_babi(tasks, word_table):
     
     """ Tokenizes sentences.
@@ -220,7 +220,7 @@ def process_babi(tasks, word_table):
     :param word_table: WordTable
     :return:
     """
-   
+
     # Define the fuction for tokenization
     def token(sent):return [w for w in sent.lower().split() if len(w)>0 ]
 
@@ -237,7 +237,7 @@ def process_babi(tasks, word_table):
     max_facts_len = 0
     max_question_len = 0
 
-    for task in tasks:
+    for task in tqdm(tasks):
         
         # find something from task['C']
         input_indices = []
@@ -265,8 +265,20 @@ def process_babi(tasks, word_table):
 
     return inputs, fact_masks, questions, answers
 
-def get_dataset(data_dir, task_id, task_type, batch_size, word_table):
-    return DataSet(batch_size, *process_babi(load_babi(data_dir,task_id,task_type), word_table))
+def get_babi(data_dir, task_id, task_type, batch_size, word_table):
+    dataset = None
+    cache_path = '{}/task{}.{}.cache'.format(data_dir, task_id, task_type)
+    if os.path.exists(cache_path):
+        with open(cache_path, 'rb') as cache:
+            dataset = pickle.load(cache)
+            print('Loaded babi cache')
+    else :
+        dataset = DataSet(batch_size, *process_babi(load_babi(data_dir,task_id,task_type), word_table))
+        with open(cache_path, 'wb') as cache:
+            pickle.dump(dataset, cache)
+        print('Saved babi cache')
+
+    return dataset
 
 def get_wordtable(dim, name=None):
     if not name:

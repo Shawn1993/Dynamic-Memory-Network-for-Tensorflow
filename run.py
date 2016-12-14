@@ -12,8 +12,8 @@ flags = tf.app.flags
 # directories
 flags.DEFINE_string('data_dir', 'data/babi/en', 'Data directory [data/babi/en]')
 flags.DEFINE_string('save_prefix', 'save/dmn/model', 'Trained model saving directory [save/dmn/model]')
-flags.DEFINE_string('train_summary_dir', 'summary/dmn/train', 'Summary saving directory for train set [ummary/dmn/train]')
-flags.DEFINE_string('dev_summary_dir', 'summary/dmn/dev', 'Summary saving directory for dev set [ummary/dmn/train]')
+flags.DEFINE_string('train_summary_dir', 'summary/dmn/train/', 'Summary saving directory for train set [ummary/dmn/train]')
+flags.DEFINE_string('dev_summary_dir', 'summary/dmn/dev/', 'Summary saving directory for dev set [ummary/dmn/train]')
 
 # babi dataset params
 flags.DEFINE_integer('task_id', 1, 'bAbi Task number [1]')
@@ -30,7 +30,7 @@ flags.DEFINE_integer('max_memory_pass', 3, 'Episodic Memory steps [3]')
 flags.DEFINE_integer('epoch_size', 256, 'Number of training epochs [256]')
 flags.DEFINE_integer('batch_size', 100, 'Batch size of mini-batch for training period [128]')
 flags.DEFINE_float('learning_rate', 0.001, 'Learning rate at the start [0.001]')
-flags.DEFINE_float('weight_decay', 0.001, 'Weight decay - 0 to turn off [0.001]')
+flags.DEFINE_float('weight_decay', 0.1, 'Weight decay - 0 to turn off [0.001]')
 
 # option
 flags.DEFINE_integer('train_period',10,'Validation period for train set when traning [10]')
@@ -49,8 +49,8 @@ def main(_):
 
     # Load data
     wordtable = data_utils.get_wordtable(FLAGS.embed_size, FLAGS.embed_type)
-    train_data = data_utils.get_dataset(FLAGS.data_dir, FLAGS.task_id, 'train', FLAGS.batch_size, wordtable)
-    test_data =  data_utils.get_dataset(FLAGS.data_dir, FLAGS.task_id, 'test', 0, wordtable)
+    train_data = data_utils.get_babi(FLAGS.data_dir, FLAGS.task_id, 'train', FLAGS.batch_size, wordtable)
+    test_data =  data_utils.get_babi(FLAGS.data_dir, FLAGS.task_id, 'test', 0, wordtable)
     train_data, dev_data = train_data.split(FLAGS.val_ratio)
 
     # Padding data set

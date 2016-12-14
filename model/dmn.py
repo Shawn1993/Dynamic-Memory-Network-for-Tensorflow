@@ -10,6 +10,7 @@ import tensorflow as tf
 import numpy as np
 
 from tensorflow.python.ops import rnn_cell
+from tqdm import tqdm
 
 class  DMN_Model(object):
     '''This is a beautiful model I like very much
@@ -271,7 +272,7 @@ class  DMN_Model(object):
     def train(self, sess, train_data, dev_data):
         merged_summary_op = tf.merge_all_summaries()
         print('Prepare to training...')
-        for epoch_now in range(1, self.epoch_size+1):
+        for epoch_now in tqdm(range(1, self.epoch_size+1), leave=False):
             loss, global_step = self.train_epoch(sess, train_data)
 
             # Save model and print
@@ -290,7 +291,7 @@ class  DMN_Model(object):
                 acc, loss, global_step = self.test(sess, dev_data)
                 #dev_summary = sess.run(merged_summary_op)
                 #self.dev_summary_writter.add_summary(dev_summary, global_step)
-                print('[Develop Validation]: loss:{} global_step: {}'.format(acc, loss, global_step))
+                print('[Dev Validation {}]: acc: {} loss:{} global_step: {}'.format(epoch_now, acc, loss, global_step))
         
     def test(self, sess, test_data):
         accs, losses = [], []
