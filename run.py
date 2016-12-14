@@ -44,6 +44,9 @@ FLAGS = flags.FLAGS
 
 def main(_):
 
+    # Download data
+    os.system('./download.sh')
+
     # Load data
     wordtable = data_utils.get_wordtable(FLAGS.embed_size, FLAGS.embed_type)
     train_data = data_utils.get_dataset(FLAGS.data_dir, FLAGS.task_id, 'train', FLAGS.batch_size, wordtable)
