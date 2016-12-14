@@ -21,7 +21,7 @@ cd 'glove'
 echo 'Downloading glove.6B ...'
 if [ ! -d 'glove.6B' ]; then
     wget 'http://nlp.stanford.edu/data/glove.6B.zip'
-    unzip 'glove.6B.zip'
+    unzip 'glove.6B.zip' -d 'glove.6B'
     rm 'glove.6B.zip'
 fi
 echo 'Downloaded'
