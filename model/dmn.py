@@ -42,7 +42,7 @@ class  DMN_Model(object):
         self.weight_decay = config.weight_decay
         self.learning_rate = config.learning_rate
         self.initial_embeddings = embeddings
-        self.save_prefix = config.save_prefix
+        self.save_dir = config.save_dir
         self.save_period = config.save_period
         self.train_period = config.train_period
         self.dev_period = config.dev_period
@@ -71,8 +71,6 @@ class  DMN_Model(object):
             print('Builded')
 
         self.saver = tf.train.Saver() # Use to save model
-        self.train_summary_writter = tf.train.SummaryWriter(config.train_summary_dir) 
-        self.dev_summary_writter = tf.train.SummaryWriter(config.dev_summary_dir)
 
 
     def add_variables(self):
@@ -257,7 +255,7 @@ class  DMN_Model(object):
     # But I can't find a good way to place them
 
     def load_model(self, sess):
-        checkpoint = tf.train.get_checkpoint_state(self.save_prefix)
+        checkpoint = tf.train.get_checkpoint_state(self.save_dir)
         if checkpoint is None:
             sys.stderr.write('No saved model...')
             sys.stderr.flush()
@@ -270,7 +268,6 @@ class  DMN_Model(object):
         return loss, global_step
 
     def train(self, sess, train_data, dev_data):
-        merged_summary_op = tf.merge_all_summaries()
         print('Prepare to training...')
         for epoch_now in tqdm(range(1, self.epoch_size+1), leave=False):
             loss, global_step = self.train_epoch(sess, train_data)
@@ -280,20 +277,21 @@ class  DMN_Model(object):
                 print('[Info {}]: Train loss: {}  global_step: {}'.format(epoch_now, loss,global_step))
             if not epoch_now % self.save_period : 
                 print('[Saving {}]: Train loss: {}  global_step: {}'.format(epoch_now, loss,global_step))
-                self.saver.save(sess, self.save_prefix, self.global_step)
+                self.saver.save(sess, self.save_dir, self.global_step)
             # Validation
             if not epoch_now % self.train_period:
-                acc, loss, global_step = self.test(sess, train_data)
-                #train_summary = sess.run([merged_summary_op])
-                #self.train_summary_writter.add_summary(train_summary, global_step)
+                acc, loss, global_step = self.eval(sess, train_data)
                 print('[Train Validation {}]: acc: {} loss:{} global_step: {}'.format(epoch_now, acc, loss, global_step))
             if dev_data and epoch_now % self.dev_period:
-                acc, loss, global_step = self.test(sess, dev_data)
-                #dev_summary = sess.run(merged_summary_op)
-                #self.dev_summary_writter.add_summary(dev_summary, global_step)
+                acc, loss, global_step = self.eval(sess, dev_data)
                 print('[Dev Validation {}]: acc: {} loss:{} global_step: {}'.format(epoch_now, acc, loss, global_step))
-        
+
     def test(self, sess, test_data):
+        acc, loss, global_step = self.eval(sess,test_data)
+        print('[Test]: acc: {} loss:{}'.format(acc, loss))
+
+
+    def eval(self, sess, test_data):
         accs, losses = [], []
         for batch in test_data:
             acc, loss, global_step = sess.run([self.accuracy, self.total_loss,self.global_step], feed_dict=self.get_feed_dict(batch, False))
@@ -301,7 +299,6 @@ class  DMN_Model(object):
             losses.append(loss)
         return np.mean(accs), np.mean(losses), global_step
 
-        return 
 
     def get_feed_dict(self, batch, is_train):
         return {

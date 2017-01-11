@@ -3,6 +3,7 @@
 import os
 
 import tensorflow as tf
+import json
 
 from model import dmn
 import data_utils
@@ -11,7 +12,7 @@ flags = tf.app.flags
 
 # directories
 flags.DEFINE_string('data_dir', 'data/babi/en', 'Data directory [data/babi/en]')
-flags.DEFINE_string('save_prefix', 'save/dmn/model', 'Trained model saving directory [save/dmn/model]')
+flags.DEFINE_string('save_dir', 'save/dmn/', 'Trained model saving directory [save/dmn/model]')
 flags.DEFINE_string('train_summary_dir', 'summary/dmn/train/', 'Summary saving directory for train set [ummary/dmn/train]')
 flags.DEFINE_string('dev_summary_dir', 'summary/dmn/dev/', 'Summary saving directory for dev set [ummary/dmn/train]')
 
@@ -44,13 +45,13 @@ FLAGS = flags.FLAGS
 
 def main(_):
 
-    # Download data
+     # Download data
     os.system('./download.sh')
 
     # Load data
     wordtable = data_utils.get_wordtable(FLAGS.embed_size, FLAGS.embed_type)
     train_data = data_utils.get_babi(FLAGS.data_dir, FLAGS.task_id, 'train', FLAGS.batch_size, wordtable)
-    test_data =  data_utils.get_babi(FLAGS.data_dir, FLAGS.task_id, 'test', 0, wordtable)
+    test_data =  data_utils.get_babi(FLAGS.data_dir, FLAGS.task_id, 'test', FLAGS.batch_size, wordtable)
     train_data, dev_data = train_data.split(FLAGS.val_ratio)
 
     # Padding data set
@@ -59,20 +60,26 @@ def main(_):
     train_data, dev_data, test_data = data_utils.padding_datasets(FLAGS,train_data, dev_data, test_data)
 
     # Create save directory
-    save_dir = FLAGS.save_prefix[:FLAGS.save_prefix.rindex('/')]
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
+    if not os.path.exists(FLAGS.save_dir):
+        os.makedirs(FLAGS.save_dir)
+
+    # Save the FlAGS
+    path = FLAGS.save_dir + 'FLAGS'
+    with open(path, 'w') as file:
+        json.dump(FLAGS.__dict__, file)
 
     # Train model or use model
     model = dmn.DMN_Model(FLAGS, list(wordtable.vocab))
-    init = tf.initialize_all_variables()
+    init = tf.global_variables_initializer() #init = tf.initialize_all_variables()
     with tf.Session() as sess:
         sess.run(init)
+        
         if FLAGS.train:
             if FLAGS.load:
                 model.load_model(sess)
             model.train(sess, train_data, dev_data)
         else:
+            model.load_model(sess)
             model.test(sess, test_data)
 
 
